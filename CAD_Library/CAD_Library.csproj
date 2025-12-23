@@ -11,6 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="ApplicationLibrary">
+      <HintPath>..\..\..\ApplicationLibrary\ApplicationLibrary\ApplicationLibrary\bin\Debug\net10.0\ApplicationLibrary.dll</HintPath>
+    </Reference>
     <Reference Include="CAD_Library">
       <HintPath>bin\Debug\net10.0\CAD_Library.dll</HintPath>
     </Reference>

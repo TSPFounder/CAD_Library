@@ -39,7 +39,8 @@ namespace CAD
             Helicoil,
             RectangularPattern,
             CircularPattern,
-            OtherPattern
+            OtherPattern,
+            Other
         }
 
         public enum Feature3DOperationEnum

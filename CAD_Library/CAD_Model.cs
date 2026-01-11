@@ -76,6 +76,12 @@ namespace CAD
         // -----------------------------
         // Properties (auto-properties)
         // -----------------------------
+        // Identification / metadata
+        public string? Name { get; set; }
+        public string? Version { get; set; }
+        public string? Description { get; set; }
+        public string? FilePath { get; set; }
+
         // Enumerations
         public CAD_AppEnum CAD_AppName { get; set; }
         public CAD_ModelTypeEnum ModelType { get; set; }
@@ -191,6 +197,6 @@ namespace CAD
         }
 
         public override string ToString()
-            => $"CAD_Model(App={CAD_AppName}, Type={ModelType}, FileType={FileType}, Parts={MyParts.Count}, Features={MyFeatures.Count})";
+            => $"CAD_Model(Name={Name ?? "<null>"}, App={CAD_AppName}, Type={ModelType}, FileType={FileType}, Parts={MyParts.Count}, Features={MyFeatures.Count})";
     }
 }

@@ -13,6 +13,29 @@ namespace CAD
     public class CAD_Surface : Surface
     {
         // -----------------------------
+        // Enums (unchanged)
+        // -----------------------------
+        public enum SurfaceTypeEnum
+        {
+            Plane = 0,
+            Circle,
+            Ellipse,
+            Trainangle,
+            Square,
+            Rectangle,
+            Quadrilateral,
+            Polygon,
+            Cylinder,
+            Cone,
+            Sphere,
+            Torus,
+            NURBS,
+            TwoDMesh,
+            ThreeDMesh,
+            Other
+        }
+
+        // -----------------------------
         // State
         // -----------------------------
         private readonly List<Mesh> _meshes = new();
@@ -35,6 +58,8 @@ namespace CAD
         public string? Name { get; set; }
         public string? ID { get; set; }
         public string? Version { get; set; }
+        public string? Description { get; set; }
+        public SurfaceTypeEnum SurfaceType { get; set; } 
 
         // -----------------------------
         // Scalar data

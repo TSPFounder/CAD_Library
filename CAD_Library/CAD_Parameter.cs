@@ -147,6 +147,27 @@ namespace CAD
             var unit = MyUnits?.ToString();
             return $"{idPart}{Name}: {val}{(unit is null ? "" : " " + unit)}";
         }
+
+        public static CAD_Parameter CreateIntegerParameter(string name, int initialValue = 0)
+        {
+            var parameter = new CAD_Parameter(name, CAD_Parameter.ParameterType.Integer);
+            parameter.Value = new CAD_ParameterValue(initialValue, parameter);
+            return parameter;
+        }
+
+        public static CAD_Parameter CreateDoubleParameter(string name, double initialValue = 0d)
+        {
+            var parameter = new CAD_Parameter(name, CAD_Parameter.ParameterType.Double);
+            parameter.Value = new CAD_ParameterValue(initialValue, parameter);
+            return parameter;
+        }
+
+        public static CAD_Parameter CreateBooleanParameter(string name, bool initialValue)
+        {
+            var parameter = new CAD_Parameter(name, CAD_Parameter.ParameterType.Other);
+            parameter.Value = new CAD_ParameterValue(initialValue, parameter);
+            return parameter;
+        }
     }
 }
 

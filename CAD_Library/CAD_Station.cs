@@ -30,18 +30,27 @@ namespace CAD
         // -----------------------------
         // Construction
         // -----------------------------
-        public CAD_Station() { }
+        /*
+        public CAD_Station(CAD_SketchPlane myPlane) {
+            _sketchPlanes.Add(myPlane);
+        }
+        */
 
-        public CAD_Station(string id, StationTypeEnum type)
+        public CAD_Station(CAD_SketchPlane myPlane,string id, StationTypeEnum type)
         {
+            _sketchPlanes.Add(myPlane);
             ID = id;
             MyType = type;
         }
 
-        public CAD_Station(string id, StationTypeEnum type, double value) : this(id, type)
+
+        
+        public CAD_Station(string id, StationTypeEnum type, double value) //: this(id, type)
         {
             SetLocation(type, value);
         }
+        
+
 
         // -----------------------------
         // Identity
@@ -70,6 +79,9 @@ namespace CAD
 
         /// <summary>Wing station location (e.g., spanwise), in model units.</summary>
         public double WingLocation { get; private set; }
+
+        /// <summary>Floor location (e.g., vertical height), in model units.</summary>
+        public double FloorLocation { get; private set; }
 
         // -----------------------------
         // Ownership

@@ -168,6 +168,8 @@ namespace CAD
             parameter.Value = new CAD_ParameterValue(initialValue, parameter);
             return parameter;
         }
+
+        public static CAD_Parameter CreateEnumParameter(string name, int initialValue) => CAD_Parameter.CreateIntegerParameter(name, initialValue);
     }
 }
 

@@ -1,4 +1,4 @@
-﻿#nullable enable
+﻿
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -83,7 +83,7 @@ namespace CAD
             MyJoints.Add(joint);
         }
 
-        public override string ToString()
+        public  string ToString()
             => $"CAD_Component(Name={Name ?? "<null>"}, Version={Version ?? "<null>"}, WBS={WBS_Level}, IsAsm={IsAssembly})";
     }
 }

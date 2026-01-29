@@ -1,5 +1,5 @@
-﻿#nullable enable
-#nullable enable
+﻿
+
 using System;
 using System.Collections.Generic;
 using Mathematics;
@@ -134,7 +134,7 @@ namespace CAD
             CurrentCS ??= cs;
         }
 
-        public override string ToString()
+        public  string ToString()
             => $"CAD_Assembly(Name={Name ?? "<null>"}, SubAsm={IsSubAssembly}, Components={MyComponents.Count}, Configs={MyConfigurations.Count})";
     }
 }

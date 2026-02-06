@@ -3,6 +3,7 @@ using CAD_Library;
 using System;
 using System.Collections.Generic;
 using static CAD.CAD_DrawingElement;
+using Newtonsoft.Json;
 
 namespace CAD
 {
@@ -69,5 +70,10 @@ namespace CAD
 
         /// <summary>Clear all configurations.</summary>
         public void ClearConfigurations() => _configurations.Clear();
+
+        // JSON Serialization
+        public new string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public static new CAD_BoM? FromJson(string json) => JsonConvert.DeserializeObject<CAD_BoM>(json);
     }
 }

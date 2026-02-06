@@ -1,9 +1,9 @@
 ﻿
 using System;
 using System.Collections.Generic;
-//using Documents;
 using Mathematics;
 using Documents;
+using Newtonsoft.Json;
 
 namespace CAD
 {
@@ -145,5 +145,9 @@ namespace CAD
             if (setCurrent) CurrentConstructionGeometry = geom;
         }
 
+        // JSON Serialization
+        public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public static CAD_Drawing? FromJson(string json) => JsonConvert.DeserializeObject<CAD_Drawing>(json);
     }
 }

@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using System.Globalization;
+using Newtonsoft.Json;
 
 namespace CAD
 {
@@ -174,5 +175,10 @@ namespace CAD
                 ParameterValueTypeEnum.Object => _value?.ToString() ?? "null",
                 _ => "null"
             };
+
+        // JSON Serialization
+        public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public static CAD_ParameterValue? FromJson(string json) => JsonConvert.DeserializeObject<CAD_ParameterValue>(json);
     }
 }

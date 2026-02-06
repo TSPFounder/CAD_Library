@@ -1,5 +1,6 @@
 ﻿
 using System;
+using Newtonsoft.Json;
 
 namespace CAD
 {
@@ -59,6 +60,11 @@ namespace CAD
         // -----------------------------
         public override string ToString() =>
             $"{Name ?? GeometryType.ToString()} [{GeometryType}] v{Version}";
+
+        // JSON Serialization
+        public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public static CAD_ConstructionGeometry? FromJson(string json) => JsonConvert.DeserializeObject<CAD_ConstructionGeometry>(json);
     }
 
     /// <summary>

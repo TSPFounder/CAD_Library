@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Mathematics;
 using SE_Library;
+using Newtonsoft.Json;
 
 namespace CAD
 {
@@ -134,8 +135,13 @@ namespace CAD
             CurrentCS ??= cs;
         }
 
-        public  string ToString()
+        public override string ToString()
             => $"CAD_Assembly(Name={Name ?? "<null>"}, SubAsm={IsSubAssembly}, Components={MyComponents.Count}, Configs={MyConfigurations.Count})";
+
+        // JSON Serialization
+        public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public static CAD_Assembly? FromJson(string json) => JsonConvert.DeserializeObject<CAD_Assembly>(json);
     }
 }
 

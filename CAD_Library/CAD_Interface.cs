@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using Mathematics;
 using SE_Library;
+using Newtonsoft.Json;
 
 namespace CAD
 {
@@ -75,5 +76,10 @@ namespace CAD
             => $"CAD_Interface(Name={Name ?? "<null>"}," +
                $" Kind={(InterfaceKind?.ToString() ?? "<unspecified>")}," +
                $" Points={MyContactPoints.Count}, Surfaces={MyContactSurfaces.Count})";
+
+        // JSON Serialization
+        public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public static CAD_Interface? FromJson(string json) => JsonConvert.DeserializeObject<CAD_Interface>(json);
     }
 }

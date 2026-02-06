@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace CAD
 {
@@ -84,6 +85,11 @@ namespace CAD
             CurrentFeature = null;
             ThreeDimOperations.Clear();
         }
+
+        // JSON Serialization
+        public new string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public static new CAD_Body? FromJson(string json) => JsonConvert.DeserializeObject<CAD_Body>(json);
     }
 }
 

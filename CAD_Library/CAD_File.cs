@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using Applications;
+using Newtonsoft.Json;
 
 namespace CAD
 {
@@ -113,5 +114,10 @@ namespace CAD
 
         public override string ToString()
             => $"CAD_File(Name={DisplayName ?? "<null>"}, Type={FileType}, App={SourceApplication}, State={LocationState})";
+
+        // JSON Serialization
+        public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public static CAD_File? FromJson(string json) => JsonConvert.DeserializeObject<CAD_File>(json);
     }
 }

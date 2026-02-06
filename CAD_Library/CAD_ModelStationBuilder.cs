@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Mathematics;
+using Newtonsoft.Json;
 
 namespace CAD
 {
@@ -202,5 +203,10 @@ namespace CAD
 
         private static double Normalize(double value)
             => Math.Round(value, 6, MidpointRounding.AwayFromZero);
+
+        // JSON Serialization
+        public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public static CAD_ModelStationBuilder? FromJson(string json) => JsonConvert.DeserializeObject<CAD_ModelStationBuilder>(json);
     }
 }

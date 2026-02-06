@@ -6,7 +6,7 @@ using Mathematics;
 using SE_Library;
 using System.IO;
 using System.Reflection.PortableExecutable;
-
+using Newtonsoft.Json;
 
 namespace CAD
 {
@@ -112,5 +112,10 @@ namespace CAD
                 throw new ArgumentException("Invalid URL.", nameof(url));
             return uri;
         }
+
+        // JSON Serialization
+        public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public static CAD_Library? FromJson(string json) => JsonConvert.DeserializeObject<CAD_Library>(json);
     }
 }

@@ -286,6 +286,11 @@ namespace CAD
             // For now we only update internal state and return success.
             return true;
         }
+
+        // JSON Serialization
+        public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public static CAD_Sketch? FromJson(string json) => JsonConvert.DeserializeObject<CAD_Sketch>(json);
     }
 }
 

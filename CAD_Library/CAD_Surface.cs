@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Mathematics;
 using SE_Library;
+using Newtonsoft.Json;
 
 namespace CAD
 {
@@ -128,5 +129,10 @@ namespace CAD
                 _meshes.Add(mesh);
             CurrentMesh = mesh;
         }
+
+        // JSON Serialization
+        public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public static CAD_Surface? FromJson(string json) => JsonConvert.DeserializeObject<CAD_Surface>(json);
     }
 }

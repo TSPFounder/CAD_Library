@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Mathematics;
 using SE_Library;
 using Documents;
+using Newtonsoft.Json;
 
 namespace CAD
 {
@@ -116,6 +117,11 @@ namespace CAD
             reason = null;
             return true;
         }
+
+        // JSON Serialization
+        public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public static CAD_Constraint? FromJson(string json) => JsonConvert.DeserializeObject<CAD_Constraint>(json);
     }
 }
 

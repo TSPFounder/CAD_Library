@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Mathematics;
 using static CAD.CAD_DrawingElement;
 using SE_Library;
-
+using Newtonsoft.Json;
 
 namespace CAD
 {
@@ -126,10 +126,15 @@ namespace CAD
                // ColumnTypeEnum = systemType
             };
             MyTable.AddColumn(col);
-           
+
             slot = col;
             return col;
         }
+
+        // JSON Serialization
+        public new string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public static new CAD_DrawingBoM_Table? FromJson(string json) => JsonConvert.DeserializeObject<CAD_DrawingBoM_Table>(json);
     }
 }
 

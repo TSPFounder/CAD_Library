@@ -166,38 +166,52 @@ end
 %% Create Parameter callback
 function createParameter(ui)
     try
-        % Build the parameter struct
+        % Build the CAD_Parameter struct matching C# CAD_Parameter class
         param = struct();
 
-        % Basic identification
+        % ----- Identity / description -----
+        % (C# CAD_Parameter: Name, Id, Description, Comments)
         param.Name = ui.nameEdit.Value;
         param.Id = ui.idEdit.Value;
         param.Description = ui.descEdit.Value;
         param.Comments = ui.commentsEdit.Value;
 
-        % Parameter type
+        % ----- Core data -----
+        % (C# CAD_Parameter.ParameterType enum: Double=0, Integer=1,
+        %  String=2, Vector=3, Other=4)
         typeMap = containers.Map(...
             {'Double', 'Integer', 'String', 'Vector', 'Other'}, ...
             {0, 1, 2, 3, 4});
         param.MyParameterType = typeMap(ui.typeDropdown.Value);
 
-        % Value
-        param.Value = createParameterValue(ui);
+        % (C# CAD_Parameter.Value : CAD_ParameterValue)
+        param.Value = createCADParameterValue(ui);
 
-        % Units
+        % (C# CAD_Parameter.MyUnits : UnitOfMeasure)
         if ~strcmp(ui.unitsDropdown.Value, 'None')
-            param.MyUnits = struct('UnitName', ui.unitsDropdown.Value);
+            param.MyUnits = createUnitOfMeasure(ui.unitsDropdown.Value);
+        else
+            param.MyUnits = [];
         end
 
-        % CAD app bindings
-        if ~isempty(ui.swNameEdit.Value)
-            param.SolidWorksParameterName = ui.swNameEdit.Value;
-        end
-        if ~isempty(ui.f360NameEdit.Value)
-            param.Fusion360ParameterName = ui.f360NameEdit.Value;
-        end
+        % (C# CAD_Parameter.MyExpression : Expression)
+        param.MyExpression = [];
 
-        % Initialize empty collections
+        % ----- CAD app bindings -----
+        param.SolidWorksParameterName = ui.swNameEdit.Value;
+        param.Fusion360ParameterName = ui.f360NameEdit.Value;
+
+        % ----- Associations -----
+        % (C# CAD_Parameter: CurrentDimension, CurrentModel,
+        %  CurrentMathParameter, DesignTable)
+        param.CurrentDimension = [];
+        param.CurrentModel = [];
+        param.CurrentMathParameter = [];
+        param.DesignTable = [];
+
+        % ----- Backing collections -----
+        % (C# CAD_Parameter: MyDimensions, MyMathParameters, MyModels,
+        %  DependencyParameters, DependentParameters)
         param.MyDimensions = {};
         param.MyMathParameters = {};
         param.MyModels = {};
@@ -221,48 +235,104 @@ function createParameter(ui)
     end
 end
 
-%% Create Parameter Value struct
-function value = createParameterValue(ui)
+%% Create CAD_ParameterValue struct
+%  Matches C# CAD_ParameterValue class.
+%  ParameterValueTypeEnum: Double=0, Single=1, Int16=2, Int32=3,
+%                          Int64=4, Boolean=5, String=6, Object=7
+function value = createCADParameterValue(ui)
     value = struct();
 
-    % Determine value type from parameter type
     typeStr = ui.typeDropdown.Value;
 
     switch typeStr
         case 'Double'
-            value.ValueType = 0;
-            value.DoubleValue = str2double(ui.valueEdit.Value);
-            if isnan(value.DoubleValue)
-                value.DoubleValue = 0;
-            end
+            value.ValueType = 0;  % Double
+            dval = str2double(ui.valueEdit.Value);
+            if isnan(dval), dval = 0; end
+            value.DoubleValue = dval;
+            value.SingleValue = [];
+            value.Int16Value = [];
+            value.Int32Value = [];
+            value.Int64Value = [];
+            value.BooleanValue = [];
+            value.StringValue = [];
 
         case 'Integer'
-            value.ValueType = 3; % Int32
-            value.Int32Value = round(str2double(ui.valueEdit.Value));
-            if isnan(value.Int32Value)
-                value.Int32Value = 0;
-            end
+            value.ValueType = 3;  % Int32
+            ival = round(str2double(ui.valueEdit.Value));
+            if isnan(ival), ival = 0; end
+            value.DoubleValue = [];
+            value.SingleValue = [];
+            value.Int16Value = [];
+            value.Int32Value = ival;
+            value.Int64Value = [];
+            value.BooleanValue = [];
+            value.StringValue = [];
 
         case 'String'
-            value.ValueType = 6;
+            value.ValueType = 6;  % String
+            value.DoubleValue = [];
+            value.SingleValue = [];
+            value.Int16Value = [];
+            value.Int32Value = [];
+            value.Int64Value = [];
+            value.BooleanValue = [];
             value.StringValue = ui.valueEdit.Value;
 
         case 'Vector'
-            value.ValueType = 7; % Object
-            % Parse vector from string like "1, 2, 3"
+            value.ValueType = 7;  % Object
             parts = strsplit(ui.valueEdit.Value, ',');
             if length(parts) >= 3
-                value.VectorValue = struct(...
-                    'X_Value', str2double(strtrim(parts{1})), ...
-                    'Y_Value', str2double(strtrim(parts{2})), ...
-                    'Z_Value', str2double(strtrim(parts{3})));
+                vx = str2double(strtrim(parts{1}));
+                vy = str2double(strtrim(parts{2}));
+                vz = str2double(strtrim(parts{3}));
+                if isnan(vx), vx = 0; end
+                if isnan(vy), vy = 0; end
+                if isnan(vz), vz = 0; end
+                value.VectorValue = struct( ...
+                    'X_Value', vx, 'Y_Value', vy, 'Z_Value', vz);
             else
-                value.VectorValue = struct('X_Value', 0, 'Y_Value', 0, 'Z_Value', 0);
+                value.VectorValue = struct( ...
+                    'X_Value', 0, 'Y_Value', 0, 'Z_Value', 0);
             end
+            value.DoubleValue = [];
+            value.SingleValue = [];
+            value.Int16Value = [];
+            value.Int32Value = [];
+            value.Int64Value = [];
+            value.BooleanValue = [];
+            value.StringValue = [];
 
         otherwise
-            value.ValueType = 7; % Object
+            value.ValueType = 7;  % Object
+            value.DoubleValue = [];
+            value.SingleValue = [];
+            value.Int16Value = [];
+            value.Int32Value = [];
+            value.Int64Value = [];
+            value.BooleanValue = [];
+            value.StringValue = [];
             value.ObjectValue = ui.valueEdit.Value;
+    end
+end
+
+%% Create UnitOfMeasure struct
+%  Matches C# SE_Library.UnitOfMeasure class.
+%  SystemOfUnitsEnum: SI=0, CGS=1, US=2, GU=3, EMU=4, Other=5
+function uom = createUnitOfMeasure(unitName)
+    uom = struct();
+    uom.Name = unitName;
+    uom.Description = '';
+    uom.SymbolName = unitName;
+    uom.UnitValue = 1.0;
+    uom.IsBaseUnit = false;
+
+    % Auto-detect system of units
+    usUnits = {'in', 'ft', 'yd', 'mi', 'oz', 'lb', 'lbf', 'psi'};
+    if any(strcmpi(unitName, usUnits))
+        uom.SystemOfUnits = 2;  % US
+    else
+        uom.SystemOfUnits = 0;  % SI
     end
 end
 

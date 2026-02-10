@@ -223,86 +223,105 @@ function updateToleranceDisplay(ui)
     end
 end
 
-%% Parse point string to struct
-function point = parsePoint(str)
-    point = struct();
-    point.X_Value = 0;
-    point.Y_Value = 0;
-    point.Z_Value_Cartesian = 0;
-
-    if isempty(str)
-        return;
-    end
-
-    parts = strsplit(str, ',');
-    if length(parts) >= 1
-        point.X_Value = str2double(strtrim(parts{1}));
-    end
-    if length(parts) >= 2
-        point.Y_Value = str2double(strtrim(parts{2}));
-    end
-    if length(parts) >= 3
-        point.Z_Value_Cartesian = str2double(strtrim(parts{3}));
-    end
-
-    % Handle NaN
-    if isnan(point.X_Value), point.X_Value = 0; end
-    if isnan(point.Y_Value), point.Y_Value = 0; end
-    if isnan(point.Z_Value_Cartesian), point.Z_Value_Cartesian = 0; end
-end
-
 %% Create Dimension callback
+%  Builds a CAD_Dimension struct matching the C# CAD_Dimension : CAD_DrawingElement
+%  class hierarchy.
 function createDimension(ui)
     try
-        % Build the dimension struct
         dim = struct();
 
-        % Identification
+        % =============================================
+        % Inherited from CAD_DrawingElement
+        % =============================================
+
+        % (C# CAD_DrawingElement.Name)
+        dim.Name = ui.nameEdit.Value;
+
+        % (C# CAD_DrawingElement.DrawingElementType enum:
+        %  DrawingView=0, Dimension=1, Table=2, BoM=3, PMI=4,
+        %  ConstructionGeometry=5, Note=6, Other=7)
+        dim.MyType = 1;  % Dimension
+
+        % (C# CAD_DrawingElement.MyDrawing : CAD_Drawing)
+        dim.MyDrawing = [];
+
+        % (C# CAD_DrawingElement.CurrentConstructionGeometry)
+        dim.CurrentConstructionGeometry = [];
+
+        % (C# CAD_DrawingElement.MyConstructionGeometry : List<CAD_ConstructionGeometery>)
+        dim.MyConstructionGeometry = {};
+
+        % =============================================
+        % CAD_Dimension own properties
+        % =============================================
+
+        % ----- Identification -----
+        % (C# CAD_Dimension.DimensionID)
         if ~isempty(ui.dimIdEdit.Value)
             dim.DimensionID = ui.dimIdEdit.Value;
         else
             dim.DimensionID = ['DIM_' datestr(now, 'yyyymmddHHMMSS')];
         end
 
-        dim.Name = ui.nameEdit.Value;
+        % (C# CAD_Dimension.Description)
         dim.Description = ui.descEdit.Value;
 
-        % Dimension type
+        % (C# CAD_Dimension.IsOrdinate)
+        dim.IsOrdinate = ui.isOrdinateCheckbox.Value;
+
+        % ----- Geometry / Locating Points -----
+        % (C# CAD_Dimension: CenterPoint, LeaderLineEndPoint,
+        %  LeaderLineBendPoint, DimensionPoint, ReferencePoint
+        %  — all Mathematics.Point)
+        dim.CenterPoint = createPoint( ...
+            ui.centerPointEdit.Value);
+        dim.DimensionPoint = createPoint( ...
+            ui.dimPointEdit.Value);
+        dim.ReferencePoint = createPoint( ...
+            ui.refPointEdit.Value);
+
+        if ~isempty(ui.leaderEndEdit.Value)
+            dim.LeaderLineEndPoint = createPoint( ...
+                ui.leaderEndEdit.Value);
+        else
+            dim.LeaderLineEndPoint = [];
+        end
+
+        if ~isempty(ui.leaderBendEdit.Value)
+            dim.LeaderLineBendPoint = createPoint( ...
+                ui.leaderBendEdit.Value);
+        else
+            dim.LeaderLineBendPoint = [];
+        end
+
+        % ----- Associations -----
+        % (C# CAD_Dimension.MyModel : CAD_Model)
+        dim.MyModel = [];
+
+        % (C# CAD_Dimension.MySegment : Segment)
+        dim.MySegment = [];
+
+        % ----- Dimension Values -----
+        % (C# CAD_Dimension: DimensionNominalValue, DimensionUpperLimitValue,
+        %  DimensionLowerLimitValue)
+        dim.DimensionNominalValue = ui.nominalEdit.Value;
+        dim.DimensionUpperLimitValue = ui.upperLimitEdit.Value;
+        dim.DimensionLowerLimitValue = ui.lowerLimitEdit.Value;
+
+        % (C# CAD_Dimension.DimensionType enum: Length=0, Diameter=1,
+        %  Radius=2, Angle=3, Distance=4, Ordinal=5, Other=6)
         typeMap = containers.Map(...
             {'Length', 'Diameter', 'Radius', 'Angle', 'Distance', 'Ordinal', 'Other'}, ...
             {0, 1, 2, 3, 4, 5, 6});
         dim.MyDimensionType = typeMap(ui.typeDropdown.Value);
 
-        % Drawing element type (Dimension = 1)
-        dim.MyType = 1;
+        % (C# CAD_Dimension.EngineeringUnit : UnitOfMeasure)
+        dim.EngineeringUnit = createUnitOfMeasure(ui.unitsDropdown.Value);
 
-        % Ordinate flag
-        dim.IsOrdinate = ui.isOrdinateCheckbox.Value;
-
-        % Values
-        dim.DimensionNominalValue = ui.nominalEdit.Value;
-        dim.DimensionUpperLimitValue = ui.upperLimitEdit.Value;
-        dim.DimensionLowerLimitValue = ui.lowerLimitEdit.Value;
-
-        % Units
-        dim.EngineeringUnit = struct('UnitName', ui.unitsDropdown.Value);
-
-        % Points
-        dim.CenterPoint = parsePoint(ui.centerPointEdit.Value);
-        dim.DimensionPoint = parsePoint(ui.dimPointEdit.Value);
-        dim.ReferencePoint = parsePoint(ui.refPointEdit.Value);
-
-        if ~isempty(ui.leaderEndEdit.Value)
-            dim.LeaderLineEndPoint = parsePoint(ui.leaderEndEdit.Value);
-        end
-
-        if ~isempty(ui.leaderBendEdit.Value)
-            dim.LeaderLineBendPoint = parsePoint(ui.leaderBendEdit.Value);
-        end
-
-        % Initialize empty collections
+        % ----- Parameters -----
+        % (C# CAD_Dimension: CurrentParameter, MyParameters)
+        dim.CurrentParameter = [];
         dim.MyParameters = {};
-        dim.MyConstructionGeometry = {};
 
         % Store in figure UserData
         ui.fig.UserData.dimension = dim;
@@ -318,6 +337,89 @@ function createDimension(ui)
     catch ex
         ui.statusLabel.Text = ['Error: ' ex.message];
         ui.statusLabel.FontColor = [0.8 0.2 0.2];
+    end
+end
+
+%% Create Point struct from comma-separated string
+%  Matches C# Mathematics.Point class with all coordinate representations.
+%  PointTypeEnum: Cartesian=0, Cylindrical=1, Spherical=2, Complex=3
+function point = createPoint(str)
+    point = struct();
+
+    % Parse X, Y, Z from string
+    x = 0; y = 0; z = 0;
+    if ~isempty(str)
+        parts = strsplit(str, ',');
+        if length(parts) >= 1
+            x = str2double(strtrim(parts{1}));
+            if isnan(x), x = 0; end
+        end
+        if length(parts) >= 2
+            y = str2double(strtrim(parts{2}));
+            if isnan(y), y = 0; end
+        end
+        if length(parts) >= 3
+            z = str2double(strtrim(parts{3}));
+            if isnan(z), z = 0; end
+        end
+    end
+
+    % Identification
+    point.PointID = '';
+    point.IsWeightPoint = false;
+
+    % Kind / flags
+    point.MyType = 0;   % Cartesian
+    point.Is2D = (z == 0);
+
+    % Cartesian
+    point.X_Value = x;
+    point.Y_Value = y;
+    point.Z_Value_Cartesian = z;
+
+    % Cylindrical
+    point.R_Value_Cylindrical = 0;
+    point.Theta_Value_Cylindrical = 0;
+    point.Z_Value_Cylindrical = 0;
+
+    % Spherical
+    point.R_Value_Spherical = 0;
+    point.Theta_Value_Spherical = 0;
+    point.Phi_Value = 0;
+
+    % GPS
+    point.Longitude = 0;
+    point.Latitude = 0;
+    point.Altitude = 0;
+
+    % Complex
+    point.Real_Value = 0;
+    point.Complex_Value = 0;
+
+    % Coordinate systems / connectivity
+    point.CurrentCoordinateSystem = [];
+    point.MyCoordinateSystems = {};
+    point.CurrentConnectedPoint = [];
+    point.MyConnectedPoints = {};
+end
+
+%% Create UnitOfMeasure struct
+%  Matches C# SE_Library.UnitOfMeasure class.
+%  SystemOfUnitsEnum: SI=0, CGS=1, US=2, GU=3, EMU=4, Other=5
+function uom = createUnitOfMeasure(unitName)
+    uom = struct();
+    uom.Name = unitName;
+    uom.Description = '';
+    uom.SymbolName = unitName;
+    uom.UnitValue = 1.0;
+    uom.IsBaseUnit = false;
+
+    % Auto-detect system of units
+    usUnits = {'in', 'ft', 'yd', 'mi', 'oz', 'lb', 'lbf', 'psi'};
+    if any(strcmpi(unitName, usUnits))
+        uom.SystemOfUnits = 2;  % US
+    else
+        uom.SystemOfUnits = 0;  % SI
     end
 end
 

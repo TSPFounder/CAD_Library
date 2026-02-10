@@ -225,14 +225,15 @@ end
 %% Create Feature callback
 function createFeature(ui)
     try
-        % Build the feature struct
+        % Build a CAD_Feature struct matching the C# CAD_Feature class
+
         feature = struct();
 
-        % Identification
+        % ── Identification ──
         feature.Name = ui.nameEdit.Value;
         feature.Version = ui.versionEdit.Value;
 
-        % Feature type enum mapping
+        % ── GeometricFeatureType (GeometricFeatureTypeEnum) ──
         typeMap = containers.Map(...
             {'Hole', 'Joint', 'Thread', 'Chamfer', 'Fillet', ...
              'CounterBore', 'CounterSink', 'Bead', 'Boss', 'Keyway', ...
@@ -244,84 +245,81 @@ function createFeature(ui)
              15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27});
         feature.GeometricFeatureType = typeMap(ui.typeDropdown.Value);
 
-        % 3D Operations
+        % ── ThreeDimOperations (List<Feature3DOperationEnum>) ──
         ops = [];
-        if ui.extrudeCheck.Value
-            ops(end+1) = 0; % Extrude
-        end
-        if ui.revolveCheck.Value
-            ops(end+1) = 1; % Revolve
-        end
-        if ui.sweepCheck.Value
-            ops(end+1) = 2; % Sweep
-        end
-        if ui.loftCheck.Value
-            ops(end+1) = 3; % Loft
-        end
+        if ui.extrudeCheck.Value, ops(end+1) = 0; end  % Extrude
+        if ui.revolveCheck.Value, ops(end+1) = 1; end   % Revolve
+        if ui.sweepCheck.Value,   ops(end+1) = 2; end   % Sweep
+        if ui.loftCheck.Value,    ops(end+1) = 3; end    % Loft
         feature.ThreeDimOperations = ops;
 
-        % Create dimensions
+        % ── MyDimensions (List<Dimension>) ──
         feature.MyDimensions = {};
 
         % Primary dimension
         if ui.primaryDimEdit.Value ~= 0 || ~isempty(ui.primaryDimLabel.Value)
-            dim1 = struct();
-            dim1.DimensionID = 'DIM_PRIMARY';
-            dim1.Name = ui.primaryDimLabel.Value;
-            dim1.DimensionNominalValue = ui.primaryDimEdit.Value;
-            dim1.EngineeringUnit = struct('UnitName', ui.primaryDimUnits.Value);
-            dim1.MyDimensionType = 0; % Length
-            feature.MyDimensions{end+1} = dim1;
+            label = ui.primaryDimLabel.Value;
+            if isempty(label), label = 'Primary'; end
+            feature.MyDimensions{end+1} = createDimensionStruct( ...
+                'DIM_PRIMARY', label, ui.primaryDimEdit.Value, ...
+                ui.primaryDimUnits.Value, 0);  % Length
         end
 
         % Secondary dimension
         if ui.secondaryDimEdit.Value ~= 0 || ~isempty(ui.secondaryDimLabel.Value)
-            dim2 = struct();
-            dim2.DimensionID = 'DIM_SECONDARY';
-            dim2.Name = ui.secondaryDimLabel.Value;
-            dim2.DimensionNominalValue = ui.secondaryDimEdit.Value;
-            dim2.EngineeringUnit = struct('UnitName', ui.secondaryDimUnits.Value);
-            dim2.MyDimensionType = 0; % Length
-            feature.MyDimensions{end+1} = dim2;
+            label = ui.secondaryDimLabel.Value;
+            if isempty(label), label = 'Secondary'; end
+            feature.MyDimensions{end+1} = createDimensionStruct( ...
+                'DIM_SECONDARY', label, ui.secondaryDimEdit.Value, ...
+                ui.secondaryDimUnits.Value, 0);  % Length
         end
 
         % Depth dimension
         if ui.depthEdit.Value ~= 0
-            dimDepth = struct();
-            dimDepth.DimensionID = 'DIM_DEPTH';
-            dimDepth.Name = 'Depth';
-            dimDepth.DimensionNominalValue = ui.depthEdit.Value;
-            dimDepth.EngineeringUnit = struct('UnitName', ui.depthUnits.Value);
-            dimDepth.MyDimensionType = 4; % Distance
-            feature.MyDimensions{end+1} = dimDepth;
+            feature.MyDimensions{end+1} = createDimensionStruct( ...
+                'DIM_DEPTH', 'Depth', ui.depthEdit.Value, ...
+                ui.depthUnits.Value, 4);  % Distance
         end
 
         % Angle dimension
         if ui.angleEdit.Value ~= 0
-            dimAngle = struct();
-            dimAngle.DimensionID = 'DIM_ANGLE';
-            dimAngle.Name = 'Angle';
-            dimAngle.DimensionNominalValue = ui.angleEdit.Value;
-            dimAngle.EngineeringUnit = struct('UnitName', ui.angleUnits.Value);
-            dimAngle.MyDimensionType = 3; % Angle
-            feature.MyDimensions{end+1} = dimAngle;
+            feature.MyDimensions{end+1} = createDimensionStruct( ...
+                'DIM_ANGLE', 'Angle', ui.angleEdit.Value, ...
+                ui.angleUnits.Value, 3);  % Angle
         end
 
         % Radius dimension
         if ui.radiusEdit.Value ~= 0
-            dimRadius = struct();
-            dimRadius.DimensionID = 'DIM_RADIUS';
-            dimRadius.Name = 'Radius';
-            dimRadius.DimensionNominalValue = ui.radiusEdit.Value;
-            dimRadius.EngineeringUnit = struct('UnitName', ui.radiusUnits.Value);
-            dimRadius.MyDimensionType = 2; % Radius
-            feature.MyDimensions{end+1} = dimRadius;
+            feature.MyDimensions{end+1} = createDimensionStruct( ...
+                'DIM_RADIUS', 'Radius', ui.radiusEdit.Value, ...
+                ui.radiusUnits.Value, 2);  % Radius
         end
 
-        % Initialize empty collections
-        feature.Sketches = {};
-        feature.Stations = {};
+        % CurrentDimension (first dimension or empty)
+        if ~isempty(feature.MyDimensions)
+            feature.CurrentDimension = feature.MyDimensions{1};
+        else
+            feature.CurrentDimension = [];
+        end
+
+        % ── Owned & Owning objects ──
+        feature.CurrentFeature = [];
         feature.MyFeatures = {};
+
+        % ── Sketches ──
+        feature.CurrentCAD_Sketch = [];
+        feature.Sketches = {};
+
+        % ── Stations ──
+        feature.CurrentCAD_Station = [];
+        feature.Stations = {};
+
+        % ── Model & Coordinate System ──
+        feature.MyModel = [];
+        feature.Origin = [];
+
+        % ── Libraries ──
+        feature.CurrentLibrary = [];
         feature.MyLibraries = {};
 
         % Store in figure UserData
@@ -423,4 +421,83 @@ function saveToFile(ui)
 
     ui.statusLabel.Text = ['Saved to: ' filename];
     ui.statusLabel.FontColor = [0.2 0.7 0.2];
+end
+
+%% Create a Dimension struct matching the C# Dimension class
+function dim = createDimensionStruct(dimID, description, nominalValue, unitName, dimType)
+    dim = struct();
+
+    % Identification
+    dim.DimensionID = dimID;
+    dim.Description = description;
+    dim.IsOrdinate = false;
+
+    % Geometry / Locating Points (Mathematics.Point)
+    dim.CenterPoint = createPoint(0, 0, 0);
+    dim.LeaderLineEndPoint = [];
+    dim.LeaderLineBendPoint = [];
+    dim.DimensionPoint = [];
+    dim.ReferencePoint = [];
+
+    % Associations
+    dim.MySegment = [];
+    dim.MyModel = [];
+
+    % Dimension values
+    dim.DimensionNominalValue = nominalValue;
+    dim.DimensionUpperLimitValue = nominalValue;
+    dim.DimensionLowerLimitValue = nominalValue;
+    dim.MyDimensionType = dimType;
+
+    % Engineering unit (SE_Library.UnitOfMeasure)
+    dim.EngineeringUnit = createUnitOfMeasure(unitName);
+
+    % Parameters
+    dim.CurrentParameter = [];
+    dim.MyParameters = {};
+end
+
+%% Create a UnitOfMeasure struct matching the C# SE_Library.UnitOfMeasure class
+function uom = createUnitOfMeasure(unitName)
+    uom = struct();
+    uom.Name = unitName;
+    uom.Description = '';
+    uom.SymbolName = unitName;
+    uom.UnitValue = 1.0;
+    uom.IsBaseUnit = false;
+
+    % Determine SystemOfUnits (0=SI, 1=Imperial)
+    imperialUnits = {'in', 'ft', 'yd', 'mi', 'oz', 'lb'};
+    if any(strcmpi(unitName, imperialUnits))
+        uom.SystemOfUnits = 1;  % Imperial
+    else
+        uom.SystemOfUnits = 0;  % SI
+    end
+end
+
+%% Create a Mathematics.Point struct (Cartesian)
+function pt = createPoint(x, y, z)
+    pt = struct();
+    pt.PointID = '';
+    pt.IsWeightPoint = false;
+    pt.MyType = 0;  % Cartesian
+    pt.Is2D = false;
+    pt.X_Value = x;
+    pt.Y_Value = y;
+    pt.Z_Value_Cartesian = z;
+    pt.R_Value_Cylindrical = 0;
+    pt.Theta_Value_Cylindrical = 0;
+    pt.Z_Value_Cylindrical = 0;
+    pt.R_Value_Spherical = 0;
+    pt.Theta_Value_Spherical = 0;
+    pt.Phi_Value = 0;
+    pt.Longitude = 0;
+    pt.Latitude = 0;
+    pt.Altitude = 0;
+    pt.Real_Value = 0;
+    pt.Complex_Value = 0;
+    pt.CurrentCoordinateSystem = [];
+    pt.MyCoordinateSystems = {};
+    pt.CurrentConnectedPoint = [];
+    pt.MyConnectedPoints = {};
 end

@@ -507,5 +507,7 @@ namespace CAD
         {
             throw new NotImplementedException("CreateSquareSlot must be implemented in a derived class.");
         }
+
+
     }
 }

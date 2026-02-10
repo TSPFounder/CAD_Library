@@ -288,7 +288,7 @@ namespace CAD
         }
 
         // JSON Serialization
-        public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
+        public string ToJson() => JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented,
             new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         public static CAD_Sketch? FromJson(string json) => JsonConvert.DeserializeObject<CAD_Sketch>(json);
     }

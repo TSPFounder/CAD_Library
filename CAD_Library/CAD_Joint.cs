@@ -49,11 +49,24 @@ namespace CAD
         // -----------------------------
         public CAD_Joint() { }
 
-        public CAD_Joint(string name, JointTypeEnum jointType, CoordinateSystem? csys = null)
+        public CAD_Joint(string name, JointTypeEnum jointType, CoordinateSystem? csys = null, 
+            CAD_Component? baseComponent = null, CAD_Component? joiningComponent = null)
         {
             Name = name;
             JointType = jointType;
             MyCoordinateSystem = csys;
+            BaseComponent = baseComponent;
+            JoiningComponent = joiningComponent;
+            
+            // Add components to the included components list
+            if (baseComponent != null)
+            {
+                AddComponent(baseComponent);
+            }
+            if (joiningComponent != null)
+            {
+                AddComponent(joiningComponent);
+            }
         }
 
         // -----------------------------
@@ -66,6 +79,9 @@ namespace CAD
         // -----------------------------
         // Data
         // -----------------------------
+        /// <summary>Component that joins to the base component through this joint.</summary>
+        public CAD_Component? JoiningComponent { get; set; }
+        
         public JointTypeEnum JointType { get; set; } = JointTypeEnum.Rigid;
         public CAD_ModelTypeEnum ModelType { get; set; } = CAD_ModelTypeEnum.Fusion360;
 

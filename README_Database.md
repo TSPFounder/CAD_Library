@@ -10,7 +10,7 @@ The CAD Library includes 31 SQL schema files in the `CAD_Library/SQL/` directory
 
 ### Prerequisites
 
-- Python 3.x
+- Python 3.6 or higher
 - SQLite 3 (usually pre-installed on most systems)
 
 ### Quick Start

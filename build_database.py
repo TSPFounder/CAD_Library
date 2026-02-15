@@ -73,6 +73,10 @@ def build_database(output_file='CAD_Library.db'):
                 # Execute the SQL statements
                 cursor.executescript(sql_content)
                 
+            except (IOError, UnicodeDecodeError) as e:
+                print(f"    Warning: Could not read file {sql_file.name}: {e}")
+                # Continue with other files even if one fails
+                continue
             except sqlite3.Error as e:
                 print(f"    Warning: Error processing {sql_file.name}: {e}")
                 # Continue with other files even if one fails

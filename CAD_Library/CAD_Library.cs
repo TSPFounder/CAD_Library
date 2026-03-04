@@ -1,6 +1,8 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SQLite;
 using CAD;
 using Mathematics;
 using SE_Library;
@@ -117,5 +119,38 @@ namespace CAD
         public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
             new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         public static CAD_Library? FromJson(string json) => JsonConvert.DeserializeObject<CAD_Library>(json);
+
+        // -----------------------------
+        // SQL Deserialization
+        // -----------------------------
+
+        /// <summary>
+        /// Creates a <see cref="CAD_Library"/> from a SQLite database whose schema matches
+        /// <c>CAD_LibraryClass_Schema.sql</c>.
+        /// </summary>
+        public static CAD_Library? FromSql(SQLiteConnection connection, string libraryId)
+        {
+            if (connection is null) throw new ArgumentNullException(nameof(connection));
+            if (string.IsNullOrWhiteSpace(libraryId)) throw new ArgumentException("Library ID must not be empty.", nameof(libraryId));
+
+            const string query =
+                "SELECT LibraryID, Name, Description, LocalPath, Url " +
+                "FROM CAD_Library WHERE LibraryID = @id;";
+
+            using var cmd = new SQLiteCommand(query, connection);
+            cmd.Parameters.AddWithValue("@id", libraryId);
+            using var reader = cmd.ExecuteReader();
+            if (!reader.Read()) return null;
+
+            string? urlStr = reader["Url"] as string;
+
+            return new CAD_Library
+            {
+                Name = reader["Name"] as string,
+                Description = reader["Description"] as string,
+                LocalPath = reader["LocalPath"] as string,
+                Url = urlStr != null ? new Uri(urlStr) : null
+            };
+        }
     }
 }

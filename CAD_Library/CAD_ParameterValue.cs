@@ -1,5 +1,7 @@
 ﻿#nullable enable
 using System;
+using System.Data;
+using System.Data.SQLite;
 using System.Globalization;
 using Newtonsoft.Json;
 
@@ -180,5 +182,53 @@ namespace CAD
         public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
             new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         public static CAD_ParameterValue? FromJson(string json) => JsonConvert.DeserializeObject<CAD_ParameterValue>(json);
+
+        // -----------------------------
+        // SQL Deserialization
+        // -----------------------------
+
+        /// <summary>
+        /// Creates a <see cref="CAD_ParameterValue"/> from a SQLite database whose schema matches
+        /// the <c>CAD_ParameterValue</c> table in <c>CAD_Parameter_Schema.sql</c>.
+        /// </summary>
+        public static CAD_ParameterValue? FromSql(SQLiteConnection connection, string parameterValueId)
+        {
+            if (connection is null) throw new ArgumentNullException(nameof(connection));
+            if (string.IsNullOrWhiteSpace(parameterValueId)) throw new ArgumentException("Parameter value ID must not be empty.", nameof(parameterValueId));
+
+            const string query =
+                "SELECT ParameterValueID, ValueType, " +
+                "       DoubleValue, SingleValue, Int16Value, Int32Value, Int64Value, " +
+                "       BooleanValue, StringValue, ObjectValue " +
+                "FROM CAD_ParameterValue WHERE ParameterValueID = @id;";
+
+            using var cmd = new SQLiteCommand(query, connection);
+            cmd.Parameters.AddWithValue("@id", parameterValueId);
+            using var reader = cmd.ExecuteReader();
+            if (!reader.Read()) return null;
+
+            var valueType = (ParameterValueTypeEnum)Convert.ToInt32(reader["ValueType"]);
+
+            return valueType switch
+            {
+                ParameterValueTypeEnum.Double => new CAD_ParameterValue(
+                    reader["DoubleValue"] is not DBNull ? Convert.ToDouble(reader["DoubleValue"]) : 0.0),
+                ParameterValueTypeEnum.Single => new CAD_ParameterValue(
+                    reader["SingleValue"] is not DBNull ? (float)Convert.ToDouble(reader["SingleValue"]) : 0f),
+                ParameterValueTypeEnum.Int16 => new CAD_ParameterValue(
+                    reader["Int16Value"] is not DBNull ? (short)Convert.ToInt32(reader["Int16Value"]) : (short)0),
+                ParameterValueTypeEnum.Int32 => new CAD_ParameterValue(
+                    reader["Int32Value"] is not DBNull ? Convert.ToInt32(reader["Int32Value"]) : 0),
+                ParameterValueTypeEnum.Int64 => new CAD_ParameterValue(
+                    reader["Int64Value"] is not DBNull ? Convert.ToInt64(reader["Int64Value"]) : 0L),
+                ParameterValueTypeEnum.Boolean => new CAD_ParameterValue(
+                    reader["BooleanValue"] is not DBNull && Convert.ToInt32(reader["BooleanValue"]) != 0),
+                ParameterValueTypeEnum.String => new CAD_ParameterValue(
+                    reader["StringValue"] as string ?? ""),
+                ParameterValueTypeEnum.Object => new CAD_ParameterValue(
+                    (object)(reader["ObjectValue"] as string ?? "")),
+                _ => new CAD_ParameterValue(valueType)
+            };
+        }
     }
 }

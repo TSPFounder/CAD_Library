@@ -1,5 +1,7 @@
 ﻿
 using System;
+using System.Data;
+using System.Data.SQLite;
 using Newtonsoft.Json;
 
 namespace CAD
@@ -66,6 +68,36 @@ namespace CAD
         public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
             new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         public static CAD_DrawingNote? FromJson(string json) => JsonConvert.DeserializeObject<CAD_DrawingNote>(json);
+
+        // -----------------------------
+        // SQL Deserialization
+        // -----------------------------
+
+        /// <summary>
+        /// Creates a <see cref="CAD_DrawingNote"/> from a SQLite database whose schema matches
+        /// <c>CAD_DrawingNote_Schema.sql</c>.
+        /// </summary>
+        public static CAD_DrawingNote? FromSql(SQLiteConnection connection, string drawingNoteId)
+        {
+            if (connection is null) throw new ArgumentNullException(nameof(connection));
+            if (string.IsNullOrWhiteSpace(drawingNoteId)) throw new ArgumentException("Drawing note ID must not be empty.", nameof(drawingNoteId));
+
+            const string query =
+                "SELECT DrawingNoteID, NoteText, MyNoteType " +
+                "FROM CAD_DrawingNote WHERE DrawingNoteID = @id;";
+
+            using var cmd = new SQLiteCommand(query, connection);
+            cmd.Parameters.AddWithValue("@id", drawingNoteId);
+            using var reader = cmd.ExecuteReader();
+            if (!reader.Read()) return null;
+
+            return new CAD_DrawingNote
+            {
+                DrawingNoteID = reader["DrawingNoteID"] as string,
+                NoteText = reader["NoteText"] as string,
+                MyNoteType = (NoteType)Convert.ToInt32(reader["MyNoteType"])
+            };
+        }
     }
 }
 

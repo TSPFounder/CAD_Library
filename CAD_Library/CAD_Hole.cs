@@ -22,7 +22,7 @@ namespace CAD
             NominalDiameter = new CAD_Dimension { MyDimensionType = CAD_Dimension.DimensionType.Diameter };
             NominalDepth = new CAD_Dimension { MyDimensionType = CAD_Dimension.DimensionType.Length };
             NominalTaperAngle = new CAD_Dimension { MyDimensionType = CAD_Dimension.DimensionType.Angle };
-            MyThreads = new List<Thread>();
+            MyThreads = new List<CAD_Thread>();
             CenterPoint = new Point();
         }
 
@@ -46,8 +46,8 @@ namespace CAD
 
         // Threads
         public bool HasThreads { get; set; }
-        public Thread CurrentThread { get; set; }
-        public List<Thread> MyThreads { get; set; }
+        public CAD_Thread CurrentThread { get; set; }
+        public List<CAD_Thread> MyThreads { get; set; }
 
         // Associations
         public CAD_Feature MyFeature { get; set; }
@@ -379,21 +379,21 @@ namespace CAD
             };
         }
 
-        private static Thread? LoadThread(SQLiteConnection connection, string threadId)
+        private static CAD_Thread? LoadThread(SQLiteConnection connection, string threadId)
         {
             const string query =
                 "SELECT ThreadID, Name, Version, Designation, ThreadClass, " +
                 "       MaterialSpecification, SurfaceFinish, " +
                 "       IsInternal, IsFine, IsMultithreaded, IsReverseThreaded, " +
                 "       IsMetric, IsSquare, Starts, ThreadStandard, CoatingThickness " +
-                "FROM Thread WHERE ThreadID = @id;";
+                "FROM CAD_Thread WHERE ThreadID = @id;";
 
             using var cmd = new SQLiteCommand(query, connection);
             cmd.Parameters.AddWithValue("@id", threadId);
             using var reader = cmd.ExecuteReader();
             if (!reader.Read()) return null;
 
-            return new Thread
+            return new CAD_Thread
             {
                 Name = reader["Name"] as string,
                 Version = reader["Version"] as string

@@ -1,7 +1,7 @@
 -- ============================================================
 -- SQLite Schema for CAD_Hole JSON mapping
 -- Generated from CAD_Library: CAD_Hole (extends CAD_Feature)
--- Also includes: Thread (extends CAD_Feature)
+-- Also includes: CAD_Thread (extends CAD_Feature)
 -- ============================================================
 -- Depends on shared tables from prior schemas:
 --   Point, Vector, CoordinateSystem, CAD_Model, CAD_Feature,
@@ -95,10 +95,10 @@ CREATE TABLE IF NOT EXISTS CAD_Library (
 );
 
 -- ============================================================
--- Thread  (extends CAD_Feature — flattened)
+-- CAD_Thread  (extends CAD_Feature — flattened)
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS Thread (
+CREATE TABLE IF NOT EXISTS CAD_Thread (
     ThreadID        TEXT PRIMARY KEY,          -- synthetic key
 
     -- Inherited from CAD_Feature
@@ -171,23 +171,24 @@ CREATE TABLE IF NOT EXISTS Thread (
     FOREIGN KEY (ReliefFeatureID)      REFERENCES CAD_Feature(FeatureID)
 );
 
--- Thread inherits Feature collection junctions (reuse names from CAD_Feature_Schema)
+-- CAD_Thread inherits Feature collection junctions (reuse names from CAD_Feature_Schema)
+
 -- MyDimensions, MyFeatures, Sketches, Stations, Libraries, ThreeDimOperations
-CREATE TABLE IF NOT EXISTS Thread_Dimension (
+CREATE TABLE IF NOT EXISTS CAD_Thread_Dimension (
     ThreadID        TEXT NOT NULL,
     DimensionID     TEXT NOT NULL,
     SortOrder       INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (ThreadID, DimensionID),
-    FOREIGN KEY (ThreadID)    REFERENCES Thread(ThreadID),
+    FOREIGN KEY (ThreadID)    REFERENCES CAD_Thread(ThreadID),
     FOREIGN KEY (DimensionID) REFERENCES CAD_Dimension(DimensionID)
 );
 
-CREATE TABLE IF NOT EXISTS Thread_SubFeature (
+CREATE TABLE IF NOT EXISTS CAD_Thread_SubFeature (
     ThreadID            TEXT NOT NULL,
     SubFeatureID        TEXT NOT NULL,
     SortOrder           INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (ThreadID, SubFeatureID),
-    FOREIGN KEY (ThreadID)      REFERENCES Thread(ThreadID),
+    FOREIGN KEY (ThreadID)      REFERENCES CAD_Thread(ThreadID),
     FOREIGN KEY (SubFeatureID)  REFERENCES CAD_Feature(FeatureID)
 );
 
@@ -254,7 +255,7 @@ CREATE TABLE IF NOT EXISTS CAD_Hole (
     FOREIGN KEY (CounterBoreOuterDiameterID) REFERENCES CAD_Dimension(DimensionID),
     FOREIGN KEY (CounterBoreDepthID)       REFERENCES CAD_Dimension(DimensionID),
     FOREIGN KEY (MyKeywayFeatureID)        REFERENCES CAD_Feature(FeatureID),
-    FOREIGN KEY (CurrentThreadID)          REFERENCES Thread(ThreadID),
+    FOREIGN KEY (CurrentThreadID)          REFERENCES CAD_Thread(ThreadID),
     FOREIGN KEY (MyFeatureID)              REFERENCES CAD_Feature(FeatureID),
     FOREIGN KEY (MySketchID)               REFERENCES CAD_Sketch(SketchID)
 );
@@ -263,14 +264,14 @@ CREATE TABLE IF NOT EXISTS CAD_Hole (
 -- CAD_Hole collection junction tables
 -- ============================================================
 
--- MyThreads (List<Thread>)
+-- MyThreads (List<CAD_Thread>)
 CREATE TABLE IF NOT EXISTS CAD_Hole_Thread (
     HoleID      TEXT NOT NULL,
     ThreadID    TEXT NOT NULL,
     SortOrder   INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (HoleID, ThreadID),
     FOREIGN KEY (HoleID)   REFERENCES CAD_Hole(HoleID),
-    FOREIGN KEY (ThreadID) REFERENCES Thread(ThreadID)
+    FOREIGN KEY (ThreadID) REFERENCES CAD_Thread(ThreadID)
 );
 
 -- Inherited from CAD_Feature: MyDimensions
@@ -333,11 +334,11 @@ CREATE INDEX IF NOT EXISTS idx_hole_model       ON CAD_Hole(MyModelID);
 CREATE INDEX IF NOT EXISTS idx_hole_keyway      ON CAD_Hole(HasKeyway);
 CREATE INDEX IF NOT EXISTS idx_hole_threads     ON CAD_Hole(HasThreads);
 
-CREATE INDEX IF NOT EXISTS idx_thread_name      ON Thread(Name);
-CREATE INDEX IF NOT EXISTS idx_thread_standard  ON Thread(ThreadStandard);
-CREATE INDEX IF NOT EXISTS idx_thread_internal  ON Thread(IsInternal);
-CREATE INDEX IF NOT EXISTS idx_thread_metric    ON Thread(IsMetric);
-CREATE INDEX IF NOT EXISTS idx_thread_model     ON Thread(MyModelID);
+CREATE INDEX IF NOT EXISTS idx_thread_name      ON CAD_Thread(Name);
+CREATE INDEX IF NOT EXISTS idx_thread_standard  ON CAD_Thread(ThreadStandard);
+CREATE INDEX IF NOT EXISTS idx_thread_internal  ON CAD_Thread(IsInternal);
+CREATE INDEX IF NOT EXISTS idx_thread_metric    ON CAD_Thread(IsMetric);
+CREATE INDEX IF NOT EXISTS idx_thread_model     ON CAD_Thread(MyModelID);
 
 -- ============================================================
 -- Views
@@ -387,10 +388,10 @@ SELECT
 FROM CAD_Hole h
 LEFT JOIN Point cp          ON h.CenterPointID   = cp.PointID
 LEFT JOIN CAD_Model m       ON h.MyModelID        = m.ModelID
-LEFT JOIN Thread t          ON h.CurrentThreadID   = t.ThreadID;
+LEFT JOIN CAD_Thread t      ON h.CurrentThreadID   = t.ThreadID;
 
 -- Flat view: thread detail
-CREATE VIEW IF NOT EXISTS v_Thread_Detail AS
+CREATE VIEW IF NOT EXISTS v_CAD_Thread_Detail AS
 SELECT
     t.ThreadID,
     t.Name,
@@ -416,5 +417,5 @@ SELECT
     -- Model
     m.Name AS ModelName
 
-FROM Thread t
+FROM CAD_Thread t
 LEFT JOIN CAD_Model m ON t.MyModelID = m.ModelID;

@@ -13,7 +13,7 @@ namespace CAD
     public sealed class CAD_ParameterValue
     {
         // -----------------------------
-        // Types
+        // Enums
         // -----------------------------
         public enum ParameterValueTypeEnum
         {
@@ -26,10 +26,7 @@ namespace CAD
             String,
             Object
         }
-
-        // -----------------------------
-        // State
-        // -----------------------------
+                
         private object? _value;
 
         /// <summary>The declared type of this value.</summary>
@@ -146,7 +143,7 @@ namespace CAD
         public bool TryGetString(out string? v) { v = null; return ValueType == ParameterValueTypeEnum.String && _value is string s && (v = s) == s; }
         public bool TryGetObject(out object? v) { v = _value; return ValueType == ParameterValueTypeEnum.Object; }
 
-        public double? AsDouble() => TryGetDouble(out var v) ? v : null;
+        public double? AsDouble() => TryGetDouble(out var v) ? v : 0;
         public float? AsSingle() => TryGetSingle(out var v) ? v : null;
         public short? AsInt16() => TryGetInt16(out var v) ? v : null;
         public int? AsInt32() => TryGetInt32(out var v) ? v : null;

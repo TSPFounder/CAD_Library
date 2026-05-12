@@ -10,6 +10,10 @@ namespace CAD
 {
     public class CAD_Dimension : CAD_DrawingElement
     {
+        // -----------------------------
+        // Enums
+        // -----------------------------
+        #region
         public enum DimensionType
         {
             Length = 0,
@@ -20,14 +24,29 @@ namespace CAD
             Ordinal,
             Other
         }
+        #endregion
 
+        // -----------------------------
+        // Constructors
+        // -----------------------------
+        #region
         public CAD_Dimension()
         {
             MyType = DrawingElementType.Dimension;
             CenterPoint = new Point();
         }
 
+        public CAD_Dimension(double nominalValue)
+            : this()
+        {
+            DimensionNominalValue = nominalValue;
+        }
+        #endregion
+
+        // -----------------------------
         // Identification
+        // -----------------------------
+        #region
         public string DimensionID { get; set; }
         public string Description { get; set; }
         public bool IsOrdinate { get; set; }
@@ -38,8 +57,12 @@ namespace CAD
         public Point LeaderLineBendPoint { get; set; }
         public Point DimensionPoint { get; set; }
         public Point ReferencePoint { get; set; }
+        #endregion
 
+        // -----------------------------
         // Associations
+        // -----------------------------
+        #region
         public CAD_Model MyModel { get; set; }
         public Segment MySegment { get; set; }
 
@@ -49,8 +72,12 @@ namespace CAD
         public double DimensionLowerLimitValue { get; set; }
         public DimensionType MyDimensionType { get; set; }
         public UnitOfMeasure EngineeringUnit { get; set; }
+        #endregion
 
+        // -----------------------------
         // Parameters
+        // -----------------------------
+        #region
         public CAD_Parameter CurrentParameter { get; set; }
         public List<CAD_Parameter> MyParameters { get; set; }
 
@@ -58,11 +85,12 @@ namespace CAD
         public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented,
             new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         public static CAD_Dimension FromJson(string json) => JsonConvert.DeserializeObject<CAD_Dimension>(json);
+        #endregion
 
         // -----------------------------
         // SQL Deserialization
         // -----------------------------
-
+        #region
         /// <summary>
         /// Creates a <see cref="CAD_Dimension"/> from a SQLite database whose schema matches
         /// <c>CAD_Dimension_Schema.sql</c>.
@@ -203,11 +231,12 @@ namespace CAD
 
             return dim;
         }
+        #endregion
 
         // -----------------------------
         // Private SQL helpers
         // -----------------------------
-
+        #region
         private static void LoadJunction(SQLiteConnection connection, string tableName,
             string ownerColumn, string ownerId, string childColumn, Action<string> onChildId)
         {
@@ -355,5 +384,6 @@ namespace CAD
                 GeometryType = (CAD_ConstructionGeometry.ConstructionGeometryTypeEnum)Convert.ToInt32(reader["GeometryType"])
             };
         }
+        #endregion
     }
 }

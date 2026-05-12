@@ -30,6 +30,7 @@ namespace CAD
         {
             Fusion360 = 0,
             Solidworks,
+            NX,
             Blender,
             UnReal4,
             UnReal5,

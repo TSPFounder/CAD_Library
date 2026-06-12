@@ -340,7 +340,7 @@ namespace CAD
             };
         }
 
-        private static Dimension? LoadDimensionAsBase(SQLiteConnection connection, string dimensionId)
+        private static CAD_Dimension? LoadDimensionAsBase(SQLiteConnection connection, string dimensionId)
         {
             const string query =
                 "SELECT DimensionID, Name, Description, MyDimensionType " +
@@ -351,12 +351,12 @@ namespace CAD
             using var reader = cmd.ExecuteReader();
             if (!reader.Read()) return null;
 
-            return new Dimension
+            return new CAD_Dimension
             {
                 DimensionID = reader["DimensionID"] as string ?? "",
                 Name = reader["Name"] as string ?? "",
                 Description = reader["Description"] as string ?? "",
-                MyDimensionType = (Dimension.DimensionType)Convert.ToInt32(reader["MyDimensionType"])
+                MyDimensionType = (CAD_Dimension.DimensionType)Convert.ToInt32(reader["MyDimensionType"])
             };
         }
 

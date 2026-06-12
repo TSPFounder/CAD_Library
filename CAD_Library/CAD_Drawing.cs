@@ -30,8 +30,8 @@ namespace CAD
         private readonly List<CAD_Sketch> _sketches = new();
         private readonly List<CAD_DrawingView> _views = new();
         private readonly List<CAD_Part> _parts = new();
-        private readonly List<Parameter> _parameters = new();
-        private readonly List<Dimension> _dimensions = new();
+        private readonly List<CAD_Parameter> _parameters = new();
+        private readonly List<CAD_Dimension> _dimensions = new();
         private readonly List<CAD_ConstructionGeometery> _constructionGeometry = new();
 
         // -----------------------------
@@ -72,12 +72,12 @@ namespace CAD
         //public CAD_Manager? TheCAD_Manager { get; set; }
 
         // Parameters
-        public Parameter? CurrentParameter { get; private set; }
-        public IReadOnlyList<Parameter> MyParameters => _parameters;
+        public CAD_Parameter? CurrentParameter { get; private set; }
+        public IReadOnlyList<CAD_Parameter> MyParameters => _parameters;
 
         // Dimensions
-        public Dimension? CurrentDimension { get; private set; }
-        public IReadOnlyList<Dimension> MyDimensions => _dimensions;
+        public CAD_Dimension? CurrentDimension { get; private set; }
+        public IReadOnlyList<CAD_Dimension> MyDimensions => _dimensions;
 
         // Construction geometry
         public CAD_ConstructionGeometery? CurrentConstructionGeometry { get; private set; }
@@ -126,14 +126,14 @@ namespace CAD
             if (setCurrent) CurrentPart = part;
         }
 
-        public void AddParameter(Parameter parameter, bool setCurrent = true)
+        public void AddParameter(CAD_Parameter parameter, bool setCurrent = true)
         {
             if (parameter is null) throw new ArgumentNullException(nameof(parameter));
             _parameters.Add(parameter);
             if (setCurrent) CurrentParameter = parameter;
         }
 
-        public void AddDimension(Dimension dimension, bool setCurrent = true)
+        public void AddDimension(CAD_Dimension dimension, bool setCurrent = true)
         {
             if (dimension is null) throw new ArgumentNullException(nameof(dimension));
             _dimensions.Add(dimension);
@@ -527,7 +527,7 @@ namespace CAD
             };
         }
 
-        private static Parameter? LoadParameter(SQLiteConnection connection, string parameterId)
+        private static CAD_Parameter? LoadParameter(SQLiteConnection connection, string parameterId)
         {
             const string query =
                 "SELECT MathParameterID, Name, Description, MyParameterType " +
@@ -538,15 +538,15 @@ namespace CAD
             using var reader = cmd.ExecuteReader();
             if (!reader.Read()) return null;
 
-            return new Parameter
+            return new CAD_Parameter
             {
                 Name = reader["Name"] as string,
                 Description = reader["Description"] as string,
-                MyParameterType = (Parameter.ParameterType)Convert.ToInt32(reader["MyParameterType"])
+                MyParameterType = (CAD_Parameter.ParameterType)Convert.ToInt32(reader["MyParameterType"])
             };
         }
 
-        private static Dimension? LoadDimension(SQLiteConnection connection, string dimensionId)
+        private static CAD_Dimension? LoadDimension(SQLiteConnection connection, string dimensionId)
         {
             const string query =
                 "SELECT DimensionID, Name, Description, IsOrdinate, " +
@@ -559,7 +559,7 @@ namespace CAD
             using var reader = cmd.ExecuteReader();
             if (!reader.Read()) return null;
 
-            return new Dimension
+            return new CAD_Dimension
             {
                 DimensionID = reader["DimensionID"] as string ?? "",
                 Name = reader["Name"] as string ?? "",
@@ -568,7 +568,7 @@ namespace CAD
                 DimensionNominalValue = Convert.ToDouble(reader["DimensionNominalValue"]),
                 DimensionUpperLimitValue = Convert.ToDouble(reader["DimensionUpperLimitValue"]),
                 DimensionLowerLimitValue = Convert.ToDouble(reader["DimensionLowerLimitValue"]),
-                MyDimensionType = (Dimension.DimensionType)Convert.ToInt32(reader["MyDimensionType"])
+                MyDimensionType = (CAD_Dimension.DimensionType)Convert.ToInt32(reader["MyDimensionType"])
             };
         }
 

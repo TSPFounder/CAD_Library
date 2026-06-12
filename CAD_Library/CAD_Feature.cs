@@ -60,7 +60,7 @@ namespace CAD
         public CAD_Feature()
         {
             ThreeDimOperations = new List<Feature3DOperationEnum>();
-            MyDimensions = new List<Dimension>();
+            MyDimensions = new List<CAD_Dimension>();
             Sketches = new List<CAD_Sketch>();
             Stations = new List<CAD_Station>();
             MyFeatures = new List<CAD_Feature>();
@@ -81,8 +81,8 @@ namespace CAD
         // -----------------------------
         // Dimensions
         // -----------------------------
-        public Dimension? CurrentDimension { get; set; }
-        public List<Dimension> MyDimensions { get; set; }
+        public CAD_Dimension? CurrentDimension { get; set; }
+        public List<CAD_Dimension> MyDimensions { get; set; }
 
         // -----------------------------
         // Owned & Owning Objects
@@ -138,7 +138,7 @@ namespace CAD
         // -----------------------------
         // Helpers (optional)
         // -----------------------------
-        public void AddDimension(Dimension dim)
+        public void AddDimension(CAD_Dimension dim)
         {
             if (dim is null) throw new ArgumentNullException(nameof(dim));
             MyDimensions.Add(dim);
@@ -427,7 +427,7 @@ namespace CAD
             };
         }
 
-        private static Dimension? LoadDimension(SQLiteConnection connection, string dimensionId)
+        private static CAD_Dimension? LoadDimension(SQLiteConnection connection, string dimensionId)
         {
             const string query =
                 "SELECT DimensionID, Name, Description, IsOrdinate, " +
@@ -440,7 +440,7 @@ namespace CAD
             using var reader = cmd.ExecuteReader();
             if (!reader.Read()) return null;
 
-            return new Dimension
+            return new CAD_Dimension
             {
                 DimensionID = reader["DimensionID"] as string ?? "",
                 Name = reader["Name"] as string ?? "",
@@ -449,7 +449,7 @@ namespace CAD
                 DimensionNominalValue = Convert.ToDouble(reader["DimensionNominalValue"]),
                 DimensionUpperLimitValue = Convert.ToDouble(reader["DimensionUpperLimitValue"]),
                 DimensionLowerLimitValue = Convert.ToDouble(reader["DimensionLowerLimitValue"]),
-                MyDimensionType = (Dimension.DimensionType)Convert.ToInt32(reader["MyDimensionType"])
+                MyDimensionType = (CAD_Dimension.DimensionType)Convert.ToInt32(reader["MyDimensionType"])
             };
         }
 

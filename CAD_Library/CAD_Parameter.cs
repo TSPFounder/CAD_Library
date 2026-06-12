@@ -56,19 +56,19 @@ namespace CAD
         // -----------------------------
         public CAD_Dimension? CurrentDimension { get; set; }
         public CAD_Model? CurrentModel { get; set; }
-        public Parameter? CurrentMathParameter { get; set; }
+        public CAD_Parameter? CurrentMathParameter { get; set; }
 
         public SE_Table? DesignTable { get; set; }
 
         // Backing collections
         private readonly List<CAD_Dimension> _dimensions = new();
-        private readonly List<Parameter> _mathParameters = new();
+        private readonly List<CAD_Parameter> _mathParameters = new();
         private readonly List<CAD_Model> _models = new();
         private readonly List<CAD_Parameter> _dependencies = new();
         private readonly List<CAD_Parameter> _dependents = new();
 
         public IReadOnlyList<CAD_Dimension> MyDimensions => _dimensions;
-        public IReadOnlyList<Parameter> MyMathParameters => _mathParameters;
+        public IReadOnlyList<CAD_Parameter> MyMathParameters => _mathParameters;
         public IReadOnlyList<CAD_Model> MyModels => _models;
         public IReadOnlyList<CAD_Parameter> DependencyParameters => _dependencies;
         public IReadOnlyList<CAD_Parameter> DependentParameters => _dependents;
@@ -103,7 +103,7 @@ namespace CAD
             if (setAsCurrent) CurrentModel = model;
         }
 
-        public void AddMathParameter(Parameter mathParameter, bool setAsCurrent = false)
+        public void AddMathParameter(CAD_Parameter mathParameter, bool setAsCurrent = false)
         {
             if (mathParameter is null) throw new ArgumentNullException(nameof(mathParameter));
             if (!_mathParameters.Contains(mathParameter)) _mathParameters.Add(mathParameter);
@@ -466,7 +466,7 @@ namespace CAD
             };
         }
 
-        private static Parameter? LoadMathParameter(SQLiteConnection connection, string mathParamId)
+        private static CAD_Parameter? LoadMathParameter(SQLiteConnection connection, string mathParamId)
         {
             const string query =
                 "SELECT MathParameterID, Name, Description, MyParameterType " +
@@ -477,11 +477,11 @@ namespace CAD
             using var reader = cmd.ExecuteReader();
             if (!reader.Read()) return null;
 
-            return new Parameter
+            return new CAD_Parameter
             {
                 Name = reader["Name"] as string,
                 Description = reader["Description"] as string,
-                MyParameterType = (Parameter.ParameterType)Convert.ToInt32(reader["MyParameterType"])
+                MyParameterType = (CAD_Parameter.ParameterType)Convert.ToInt32(reader["MyParameterType"])
             };
         }
 

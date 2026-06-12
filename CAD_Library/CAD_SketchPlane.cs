@@ -32,7 +32,7 @@ namespace CAD
             CoordinateSystemOrigin,
             Incremental
         }
-
+        
         // -----------------------------
         // Backing storage
         // -----------------------------

@@ -22,8 +22,8 @@ namespace CAD
             MyFeatures = new List<CAD_Feature>();
             MyBodies = new List<CAD_Body>();
             MyDrawings = new List<CAD_Drawing>();
-            MyDimensions = new List<Dimension>();
-            MyParameters = new List<Parameter>();
+            MyDimensions = new List<CAD_Dimension>();
+            MyParameters = new List<CAD_Parameter>();
             MyModels = new List<CAD_Model>();
             MyCoordinateSystems = new List<CoordinateSystem>();
             //MyLibraries = new List<CAD_Library>();
@@ -103,14 +103,14 @@ namespace CAD
         // -----------------------------
         // Dimensions
         // -----------------------------
-        public Dimension? CurrentDimension { get; set; }
-        public List<Dimension> MyDimensions { get; set; }
+        public CAD_Dimension? CurrentDimension { get; set; }
+        public List<CAD_Dimension> MyDimensions { get; set; }
 
         // -----------------------------
         // Parameters
         // -----------------------------
-        public Parameter? CurrentParameter { get; set; }
-        public List<Parameter> MyParameters { get; set; }
+        public CAD_Parameter? CurrentParameter { get; set; }
+        public List<CAD_Parameter> MyParameters { get; set; }
 
         // -----------------------------
         // Assembly
@@ -191,14 +191,14 @@ namespace CAD
             CurrentBody ??= body;
         }
 
-        public void AddDimension(Dimension dim)
+        public void AddDimension(CAD_Dimension dim)
         {
             if (dim is null) throw new ArgumentNullException(nameof(dim));
             MyDimensions.Add(dim);
             CurrentDimension ??= dim;
         }
 
-        public void AddParameter(Parameter param)
+        public void AddParameter(CAD_Parameter param)
         {
             if (param is null) throw new ArgumentNullException(nameof(param));
             MyParameters.Add(param);
@@ -603,7 +603,7 @@ namespace CAD
             };
         }
 
-        private static Dimension? LoadDimension(SQLiteConnection connection, string dimensionId)
+        private static CAD_Dimension? LoadDimension(SQLiteConnection connection, string dimensionId)
         {
             const string query =
                 "SELECT DimensionID, Name, Description, IsOrdinate, " +
@@ -616,7 +616,7 @@ namespace CAD
             using var reader = cmd.ExecuteReader();
             if (!reader.Read()) return null;
 
-            return new Dimension
+            return new CAD_Dimension
             {
                 DimensionID = reader["DimensionID"] as string,
                 Name = reader["Name"] as string,
@@ -625,11 +625,11 @@ namespace CAD
                 DimensionNominalValue = Convert.ToDouble(reader["DimensionNominalValue"]),
                 DimensionUpperLimitValue = Convert.ToDouble(reader["DimensionUpperLimitValue"]),
                 DimensionLowerLimitValue = Convert.ToDouble(reader["DimensionLowerLimitValue"]),
-                MyDimensionType = (Dimension.DimensionType)Convert.ToInt32(reader["MyDimensionType"])
+                MyDimensionType = (CAD_Dimension.DimensionType)Convert.ToInt32(reader["MyDimensionType"])
             };
         }
 
-        private static Parameter? LoadParameter(SQLiteConnection connection, string parameterId)
+        public static CAD_Parameter? LoadParameter(SQLiteConnection connection, string parameterId)
         {
             const string query =
                 "SELECT MathParameterID, Name, PartNumber, Description, Comments, MyParameterType, " +
@@ -641,13 +641,13 @@ namespace CAD
             using var reader = cmd.ExecuteReader();
             if (!reader.Read()) return null;
 
-            return new Parameter
+            return new CAD_Parameter
             {
                 Name = reader["Name"] as string,
-                PartNumber = reader["PartNumber"] as string,
+                //PartNumber = reader["PartNumber"] as string,
                 Description = reader["Description"] as string,
                 Comments = reader["Comments"] as string,
-                MyParameterType = (Parameter.ParameterType)Convert.ToInt32(reader["MyParameterType"]),
+                MyParameterType = (CAD_Parameter.ParameterType)Convert.ToInt32(reader["MyParameterType"]),
                 SolidWorksParameterName = reader["SolidWorksParameterName"] as string,
                 Fusion360ParameterName = reader["Fusion360ParameterName"] as string
             };

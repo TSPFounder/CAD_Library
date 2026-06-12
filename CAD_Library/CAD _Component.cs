@@ -19,7 +19,7 @@ namespace CAD
         {
             MySketches = new List<CAD_Sketch>();
             MyJoints = new List<CAD_Joint>();
-            MomentsOfInertia = new List<Parameter>();
+            MomentsOfInertia = new List<CAD_Parameter>();
             PrincipleDirections = new List<Mathematics.Vector>();
         }
 
@@ -33,8 +33,8 @@ namespace CAD
         // -----------------------------
         // Data
         // -----------------------------
-        public Parameter? Weight { get; set; }
-        public List<Parameter> MomentsOfInertia { get; set; }
+        public CAD_Parameter? Weight { get; set; }
+        public List<CAD_Parameter> MomentsOfInertia { get; set; }
         /// <remarks>
         /// Kept the original property name <c>PrincipleDirections</c> to preserve API compatibility.
         /// If this was a typo for “PrincipalDirections”, we can add a second read-only alias.
@@ -252,7 +252,7 @@ namespace CAD
             return vec;
         }
 
-        private static Parameter? LoadParameter(SQLiteConnection connection, string parameterId)
+        private static CAD_Parameter? LoadCAD_Parameter(SQLiteConnection connection, string parameterId)
         {
             const string query =
                 "SELECT ParameterID, Name, Description, ParameterType " +
@@ -263,11 +263,11 @@ namespace CAD
             using var reader = cmd.ExecuteReader();
             if (!reader.Read()) return null;
 
-            return new Parameter
+            return new CAD_Parameter
             {
                 Name = reader["Name"] as string,
                 Description = reader["Description"] as string,
-                MyParameterType = (Parameter.ParameterType)Convert.ToInt32(reader["ParameterType"])
+                MyParameterType = (CAD_Parameter.ParameterType)Convert.ToInt32(reader["ParameterType"])
             };
         }
 

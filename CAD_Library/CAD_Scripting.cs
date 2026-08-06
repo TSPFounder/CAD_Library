@@ -116,11 +116,73 @@ namespace CAD.Scripting
         public double HeightCm { get; set; }
     }
 
-    public sealed class ExtrudeOp : CadOperation
+    /// <summary>Adds a circle to a sketch, positioned in the sketch's own plane.</summary>
+    public sealed class SketchCircleOp : CadOperation
+    {
+        public override string Kind => "sketchCircle";
+        public string SketchId { get; set; } = string.Empty;
+        public double CentreXCm { get; set; }
+        public double CentreYCm { get; set; }
+        public double RadiusCm { get; set; }
+    }
+
+    /// <summary>
+    /// Adds a connected run of straight lines to a sketch.
+    ///
+    /// THIS IS WHAT MAKES REVOLVE WORTH HAVING. Rectangles and circles revolve
+    /// into cylinders and tori and nothing else; a revolved profile of any real
+    /// interest -- a tower wall section, a hub fillet, a nozzle contour -- is a
+    /// polyline. Arcs and splines are deliberately absent: they should arrive
+    /// when a part needs one, not in anticipation of one.
+    /// </summary>
+    public sealed class SketchPolylineOp : CadOperation
+    {
+        public override string Kind => "sketchPolyline";
+        public string SketchId { get; set; } = string.Empty;
+
+        /// <summary>Points in the sketch plane, {x, y} in centimetres, in order.</summary>
+        public List<double[]> PointsCm { get; set; } = new();
+
+        /// <summary>Close the run back to the first point. A profile REQUIRES this:
+        /// an open run yields no profile, and the feature built on it finds nothing.</summary>
+        public bool Closed { get; set; } = true;
+    }
+
+    /// <summary>
+    /// Shared by the operations that consume a sketch profile.
+    ///
+    /// PROFILE INDEX IS EXPLICIT BECAUSE THE ALTERNATIVE IS SILENT. A sketch with
+    /// two closed loops has two profiles, and taking item(0) picks one of them
+    /// without saying which -- a feature built on the wrong half of a sketch reads
+    /// as a modelling mistake rather than a tooling one. Emitters are expected to
+    /// check the count and fail loudly when the index does not exist.
+    /// </summary>
+    public abstract class ProfileFeatureOp : CadOperation
+    {
+        public string SketchId { get; set; } = string.Empty;
+        public int ProfileIndex { get; set; } = 0;
+    }
+
+    public sealed class ExtrudeOp : ProfileFeatureOp
     {
         public override string Kind => "extrude";
-        public string SketchId { get; set; } = string.Empty;
         public double DistanceCm { get; set; }
+        public bool Symmetric { get; set; } = false;
+    }
+
+    /// <summary>Revolves a sketch profile about a construction axis.</summary>
+    public sealed class RevolveOp : ProfileFeatureOp
+    {
+        public override string Kind => "revolve";
+
+        /// <summary>"X" | "Y" | "Z" -- the component's construction axis. A sketch
+        /// line as the axis is not supported: it needs a way to NAME one piece of
+        /// geometry, which is a larger decision than this operation.</summary>
+        public string Axis { get; set; } = "Z";
+
+        /// <summary>Degrees. 360 is a full revolve.</summary>
+        public double AngleDeg { get; set; } = 360.0;
+
         public bool Symmetric { get; set; } = false;
     }
 
@@ -250,7 +312,10 @@ namespace CAD.Scripting
             ["setParameter"]    = typeof(SetParameterOp),
             ["createSketch"]    = typeof(CreateSketchOp),
             ["sketchRectangle"] = typeof(SketchRectangleOp),
+            ["sketchCircle"]    = typeof(SketchCircleOp),
+            ["sketchPolyline"]  = typeof(SketchPolylineOp),
             ["extrude"]         = typeof(ExtrudeOp),
+            ["revolve"]         = typeof(RevolveOp),
             ["export"]          = typeof(ExportOp),
             ["rawCode"]         = typeof(RawCodeOp),
         };
